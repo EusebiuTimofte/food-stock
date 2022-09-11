@@ -71,14 +71,17 @@ public class MainMenuService {
 
     public int readOptionChoosed() {
         System.out.println("Introduceti optiunea dorita:");
-        String optionTerminal = this.sc.nextLine();
+
         do {
             try {
+                String optionTerminal = sc.nextLine();
+                if (optionTerminal.equals("")) continue;
+//                System.out.println("optionTerminal read: " + optionTerminal);
                 int option= Integer.parseInt(optionTerminal);
-                if (1 <= option && option <= 10 ) return option;
-                else System.out.println("Introduceti un numar intreg intre 1 si 1");
+                if (1 <= option && option <= 2 ) return option;
+                else System.out.println("Introduceti un numar intreg intre 1 si 2");
             }catch (NumberFormatException e){
-                System.out.println("Introduceti un numar intreg intre 1 si 10");
+                System.out.println("Introduceti un numar intreg intre 1 si 2");
             }
 
         }while (true);
@@ -100,6 +103,8 @@ public class MainMenuService {
         food.setProductName(sc.nextLine().toLowerCase().trim());
         System.out.println("Introdu unitatea de masura:");
         food.setMeasurementUnit(sc.nextLine());
+        System.out.println("Introdu cantitatea adaugata");
+        food.setStockQuantity(sc.nextDouble());
         return food;
     }
 
@@ -109,7 +114,7 @@ public class MainMenuService {
         // if it exists, add units to the quantity
         // if not, create ingredient
         Transaction transaction = session.beginTransaction();
-        List<Food> foodList = session.createNativeQuery("select * from Food where product_name=" + food.getProductName(), Food.class).list();
+        List<Food> foodList = session.createNativeQuery("select * from Food where product_name='" + food.getProductName()+ "'", Food.class).list();
         if (foodList.size() == 0){
             System.out.println("Nu a fost gasit niciun ingredient cu numele " + food.getProductName());
             System.out.println("Doriti adaugarea ingredientului sau renuntati la operatiune? (0/1)");
@@ -126,7 +131,7 @@ public class MainMenuService {
             }
         }else {
             Food foodFromDb = foodList.get(0);
-            foodFromDb.setStockQuantity(food.getStockQuantity() + food.getStockQuantity());
+            foodFromDb.setStockQuantity(foodFromDb.getStockQuantity() + food.getStockQuantity());
             System.out.println("Cantitatea ingredientului a fost actualizata");
             System.out.println(foodFromDb);
         }
@@ -145,15 +150,24 @@ public class MainMenuService {
             Workbook workbook = new XSSFWorkbook(file);
             Sheet sheet = workbook.getSheetAt(0);
             for (Row row : sheet) {
-                for (Cell cell : row) {
-                    if (cell.getRowIndex() == 0) continue;
-                    if (cell.getColumnIndex() != 2) {
-                        System.out.println(cell.getStringCellValue());
-                    }else {
-                        System.out.println(cell.getNumericCellValue());
-                    }
+                String name = row.getCell(0).getStringCellValue().trim().toLowerCase();
+                String measurementUnit = row.getCell(1).getStringCellValue();
+                double quantity = row.getCell(2).getNumericCellValue();
 
+                // see if ingredient name can be found in database
+                Transaction transaction = session.beginTransaction();
+                Food food = session.createNativeQuery("select * from Food where product_name='" + name + "'", Food.class).uniqueResult();
+                if (food == null) {
+                    System.out.println("Ingredientul " + name + " nu se afla in baza de date, va fi adaugat");
+                    food = new Food();
+                    food.setProductName(name);
+                    food.setMeasurementUnit(measurementUnit);
+                    food.setStockQuantity(quantity);
+                    session.persist(food);
+                }else {
+                    food.setStockQuantity(food.getStockQuantity() + quantity);
                 }
+                transaction.commit();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
