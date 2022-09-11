@@ -294,4 +294,14 @@ public class MainMenuService {
         } catch (InterruptedException ignore) {}
 
     }
+
+    public void cookRecipe() {
+
+        System.out.println("Introduceti numele retetei");
+        String recipeName = sc.nextLine().trim().toLowerCase();
+        //get recipe
+        // check recipe exists
+        // get ingredients
+        // update quantities if possible
+    }
 }
