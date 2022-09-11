@@ -1,8 +1,9 @@
 package com.mycompany.app.services;
 
 import com.mycompany.app.entities.Food;
+import com.mycompany.app.entities.FoodRecipe;
+import com.mycompany.app.entities.Recipe;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -49,20 +50,15 @@ public class MainMenuService {
             showMenu();
             int option = readOptionChoosed();
             switch (option) {
-                case 1:
-                    addIngredient();
-                    break;
-                case 2:
-                    addIngredientsFromExcel();
-                    break;
-                case 3:
-                    exportAllFoodIntoXlsx();
-                    break;
-                case 10:
+                case 1 -> addIngredient();
+                case 2 -> addIngredientsFromExcel();
+                case 3 -> exportAllFoodIntoXlsx();
+                case 4 -> addRecipe();
+                case 10 -> {
                     System.out.println("Au revoir!");
                     System.exit(0);
-                default:
-                    throw new AssertionError();
+                }
+                default -> throw new AssertionError();
             }
 
         }while (true);
@@ -74,6 +70,7 @@ public class MainMenuService {
         System.out.println("1. Adauga un singur ingredient");
         System.out.println("2. Adauga ingrediente dintr-un excel");
         System.out.println("3. Exporta ingredientele existente intr-un excel");
+        System.out.println("4. Adauga o reteta");
         System.out.println("10. Exit");
     }
 
@@ -249,9 +246,52 @@ public class MainMenuService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
 
+    public void addRecipe() {
+        //citim numele
+        //citim ingredientul si cantitatea sa
+        System.out.println("Introduceti numele retetei:");
+        String recipeName = sc.nextLine();
+        Transaction transaction = session.beginTransaction();
+        Recipe recipe = new Recipe();
+        recipe.setProductName(recipeName);
+        session.persist(recipe);
+        System.out.println("Urmeaza introducerea ingredientelor.");
+        do {
+            System.out.println("Introduceti numele ingredientului. 0 daca nu mai sunt ingrediente de introdus");
+            String ingredientName = sc.nextLine().trim().toLowerCase();
+            if (ingredientName.equals("0")) break;
+            System.out.println("Introduceti cantitatea necesara");
+            double quantity = sc.nextDouble();
 
+            //check ingredient already exists, if not add it
+            Food food = session.createNativeQuery("select * from Food where product_name='" + ingredientName + "'", Food.class).uniqueResult();
+            if (food == null){
+                System.out.println("Ingredientul nu se afla in baza de date si trebuie sa fie introdus. Precizati unitatea de masura a acestuia:");
+                String measurementUnit = sc.nextLine();
+                if (measurementUnit.equals("")) measurementUnit = sc.nextLine();
+                food = new Food();
+                food.setProductName(ingredientName);
+                food.setMeasurementUnit(measurementUnit);
+                food.setStockQuantity(0.0);
+                session.persist(food);
+                System.out.println("Ingredientul a fost adaugat cu succes!");
 
-        // create file
+            }
+
+            FoodRecipe foodRecipe = new FoodRecipe();
+            foodRecipe.setRecipe(recipe);
+            foodRecipe.setFood(food);
+            foodRecipe.setQuantity(quantity);
+            session.persist(foodRecipe);
+
+        }while (true);
+        transaction.commit();
+        System.out.println("Reteta a fost adaugata cu succes");
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ignore) {}
+
     }
 }
