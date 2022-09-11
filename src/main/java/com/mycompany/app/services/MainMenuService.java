@@ -150,6 +150,7 @@ public class MainMenuService {
             Workbook workbook = new XSSFWorkbook(file);
             Sheet sheet = workbook.getSheetAt(0);
             for (Row row : sheet) {
+                if (row.getRowNum() == 0) continue;
                 String name = row.getCell(0).getStringCellValue().trim().toLowerCase();
                 String measurementUnit = row.getCell(1).getStringCellValue();
                 double quantity = row.getCell(2).getNumericCellValue();
