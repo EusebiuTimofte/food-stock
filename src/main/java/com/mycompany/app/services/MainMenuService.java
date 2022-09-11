@@ -1,6 +1,11 @@
 package com.mycompany.app.services;
 
 import com.mycompany.app.entities.Food;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -8,8 +13,11 @@ import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 
-import java.util.List;
-import java.util.Scanner;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.*;
 
 public class MainMenuService {
 
@@ -44,6 +52,9 @@ public class MainMenuService {
                 case 1:
                     addIngredient();
                     break;
+                case 2:
+                    addIngredientsFromExcel();
+                    break;
                 default:
                     throw new AssertionError();
             }
@@ -55,6 +66,7 @@ public class MainMenuService {
         System.out.println("---------MENU----------\n");
         System.out.println("-- MENIU INGREDIENTE");
         System.out.println("1. Adauga un singur ingredient");
+        System.out.println("2. Adauga ingrediente dintr-un excel");
     }
 
     public int readOptionChoosed() {
@@ -119,5 +131,32 @@ public class MainMenuService {
             System.out.println(foodFromDb);
         }
         transaction.commit();
+    }
+
+    public void addIngredientsFromExcel() {
+
+        System.out.println("Introduceti calea catre fisierul xslx");
+        Scanner sc = new Scanner(System.in);
+        String excelPath = sc.nextLine();
+        //read excel
+        // add ingredient
+
+        try(FileInputStream file = new FileInputStream(excelPath)) {
+            Workbook workbook = new XSSFWorkbook(file);
+            Sheet sheet = workbook.getSheetAt(0);
+            for (Row row : sheet) {
+                for (Cell cell : row) {
+                    if (cell.getRowIndex() == 0) continue;
+                    if (cell.getColumnIndex() != 2) {
+                        System.out.println(cell.getStringCellValue());
+                    }else {
+                        System.out.println(cell.getNumericCellValue());
+                    }
+
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
