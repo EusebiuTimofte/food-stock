@@ -1,7 +1,6 @@
 package com.mycompany.app.services;
 
 import com.mycompany.app.entities.Food;
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -13,9 +12,8 @@ import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 
-import java.io.File;
+
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 
@@ -55,6 +53,11 @@ public class MainMenuService {
                 case 2:
                     addIngredientsFromExcel();
                     break;
+                case 3:
+                    break;
+                case 4:
+                    System.out.println("Au revoir!");
+                    System.exit(0);
                 default:
                     throw new AssertionError();
             }
@@ -67,6 +70,7 @@ public class MainMenuService {
         System.out.println("-- MENIU INGREDIENTE");
         System.out.println("1. Adauga un singur ingredient");
         System.out.println("2. Adauga ingrediente dintr-un excel");
+        System.out.println("10. Exit");
     }
 
     public int readOptionChoosed() {
@@ -78,10 +82,10 @@ public class MainMenuService {
                 if (optionTerminal.equals("")) continue;
 //                System.out.println("optionTerminal read: " + optionTerminal);
                 int option= Integer.parseInt(optionTerminal);
-                if (1 <= option && option <= 2 ) return option;
-                else System.out.println("Introduceti un numar intreg intre 1 si 2");
+                if (1 <= option && option <= 10 ) return option;
+                else System.out.println("Introduceti un numar intreg intre 1 si 10");
             }catch (NumberFormatException e){
-                System.out.println("Introduceti un numar intreg intre 1 si 2");
+                System.out.println("Introduceti un numar intreg intre 1 si 10");
             }
 
         }while (true);
