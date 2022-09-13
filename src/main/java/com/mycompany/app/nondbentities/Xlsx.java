@@ -3,6 +3,7 @@ package com.mycompany.app.nondbentities;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
@@ -26,8 +27,10 @@ public abstract class Xlsx {
             outputStream.flush();
             outputStream.close();
             System.out.println("Fisier creat cu succes la locatia " + fileLocation);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (FileNotFoundException e) {
+            System.out.println("Calea " + fileLocation +" este invalida ori fisierul nu a putut fi creat");
+        }catch (IOException e2){
+            System.out.println("System error");
         }
 
     }
