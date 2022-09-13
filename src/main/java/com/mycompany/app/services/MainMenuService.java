@@ -13,8 +13,6 @@ import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 
 
-import javax.sound.midi.Soundbank;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -314,20 +312,20 @@ public class MainMenuService {
             List<FoodRecipe> ingredients = session.createNativeQuery("select * from foodrecipes where recipe_id=" + recipe.getId(), FoodRecipe.class).list();
             //luam fiecare ingredient si facem update. daca nu se poate dam la tranzactie reverse;
             Transaction transaction = session.beginTransaction();
-            for (int i=0;i<ingredients.size(); i++) {
+            for (FoodRecipe ingredient : ingredients) {
                 //get ingredient
-                if (ingredients.get(i).getFood().getStockQuantity() < ingredients.get(i).getQuantity()){
+                if (ingredient.getFood().getStockQuantity() < ingredient.getQuantity()) {
                     System.out.println("Reteta nu poate fi gatita. Aceasta necesita "
-                            + ingredients.get(i).getQuantity()
-                            + " " + ingredients.get(i).getFood().getMeasurementUnit()
-                            + " de " + ingredients.get(i).getFood().getProductName()
-                            + ", dar in stock sunt doar " + ingredients.get(i).getFood().getStockQuantity() +
-                            " " + ingredients.get(i).getFood().getMeasurementUnit());
+                            + ingredient.getQuantity()
+                            + " " + ingredient.getFood().getMeasurementUnit()
+                            + " de " + ingredient.getFood().getProductName()
+                            + ", dar in stock sunt doar " + ingredient.getFood().getStockQuantity() +
+                            " " + ingredient.getFood().getMeasurementUnit());
                     transaction.rollback();
                     return;
-                }else{
-                    Food food = ingredients.get(i).getFood();
-                    food.setStockQuantity(food.getStockQuantity()- ingredients.get(i).getQuantity());
+                } else {
+                    Food food = ingredient.getFood();
+                    food.setStockQuantity(food.getStockQuantity() - ingredient.getQuantity());
                     session.persist(food);
                 }
 
