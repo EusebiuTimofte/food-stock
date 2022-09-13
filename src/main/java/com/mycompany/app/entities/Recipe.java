@@ -14,7 +14,7 @@ public class Recipe {
     private long id;
 
     @Column(name = "recipe_name")
-    private String productName;
+    private String recipeName;
 
     @OneToMany(mappedBy = "recipe")
     private Set<FoodRecipe> foodRecipes = new HashSet<FoodRecipe>();
@@ -27,12 +27,12 @@ public class Recipe {
         this.id = id;
     }
 
-    public String getProductName() {
-        return productName;
+    public String getRecipeName() {
+        return recipeName;
     }
 
-    public void setProductName(String productName) {
-        this.productName = productName;
+    public void setRecipeName(String recipeName) {
+        this.recipeName = recipeName;
     }
 
     public Set<FoodRecipe> getFoodRecipes() {

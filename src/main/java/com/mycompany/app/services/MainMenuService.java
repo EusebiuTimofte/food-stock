@@ -56,6 +56,7 @@ public class MainMenuService {
                 case 3 -> exportAllFoodIntoXlsx();
                 case 4 -> addRecipe();
                 case 5 -> cookRecipe();
+                case 6 -> exportRecipesToXlsx();
                 case 10 -> {
                     System.out.println("Au revoir!");
                     System.exit(0);
@@ -74,6 +75,7 @@ public class MainMenuService {
         System.out.println("3. Exporta ingredientele existente intr-un excel");
         System.out.println("4. Adauga o reteta");
         System.out.println("5. Gateste o reteta");
+        System.out.println("6. Exporta retetele intru excel");
         System.out.println("10. Exit");
     }
 
@@ -245,6 +247,7 @@ public class MainMenuService {
             workbook.write(outputStream);
             outputStream.flush();
             outputStream.close();
+            System.out.println("Fisier creat cu succes la locatia " + fileLocation);
 
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -258,7 +261,7 @@ public class MainMenuService {
         String recipeName = sc.nextLine();
         Transaction transaction = session.beginTransaction();
         Recipe recipe = new Recipe();
-        recipe.setProductName(recipeName);
+        recipe.setRecipeName(recipeName);
         session.persist(recipe);
         System.out.println("Urmeaza introducerea ingredientelor.");
         do {
@@ -332,5 +335,98 @@ public class MainMenuService {
             transaction.commit();
             System.out.println("Stocul a fost actualizat cu succes.");
         }
+    }
+
+    public void exportRecipesToXlsx() {
+
+        System.out.println("Introduceti numele fisierului");
+        String xlsxFilename = sc.nextLine();
+        if (!Pattern.matches(".*\\.xlsx", xlsxFilename)) xlsxFilename = xlsxFilename + ".xlsx";
+
+        System.out.println("Introduceti calea catre directorul unde sa fie creat fisierul");
+        String directoryPath = sc.nextLine();
+
+        //get from db data
+        List<FoodRecipe> foodRecipes = session.createNativeQuery("select * from foodrecipes ORDER BY recipe_id ASC", FoodRecipe.class).list();
+
+        // create excel workbook
+        try (XSSFWorkbook workbook = new XSSFWorkbook()){
+            Sheet sheet = workbook.createSheet("Retete");
+            sheet.setColumnWidth(0, 6000);
+            sheet.setColumnWidth(1, 4000);
+
+            Row header = sheet.createRow(0);
+
+            CellStyle headerStyle = workbook.createCellStyle();
+
+            Cell headerCell = header.createCell(0);
+            headerCell.setCellValue("Id reteta");
+            headerCell.setCellStyle(headerStyle);
+
+            headerCell = header.createCell(1);
+            headerCell.setCellValue("Nume reteta");
+            headerCell.setCellStyle(headerStyle);
+
+            headerCell = header.createCell(2);
+            headerCell.setCellValue("Id ingredient");
+            headerCell.setCellStyle(headerStyle);
+
+            headerCell = header.createCell(3);
+            headerCell.setCellValue("Nume ingredient");
+            headerCell.setCellStyle(headerStyle);
+
+            headerCell = header.createCell(4);
+            headerCell.setCellValue("Cantitate");
+            headerCell.setCellStyle(headerStyle);
+
+            headerCell = header.createCell(5);
+            headerCell.setCellValue("Unitate de masura");
+            headerCell.setCellStyle(headerStyle);
+
+            // populate excel workbook with data
+            CellStyle style = workbook.createCellStyle();
+            style.setWrapText(true);
+
+            for (int i=0;i<foodRecipes.size(); i++){
+                Row row = sheet.createRow(i+1);
+
+                Cell cell = row.createCell(0);
+                cell.setCellValue(foodRecipes.get(i).getRecipe().getId());
+                cell.setCellStyle(style);
+
+                Cell cell2 = row.createCell(1);
+                cell2.setCellValue(foodRecipes.get(i).getRecipe().getRecipeName());
+                cell2.setCellStyle(style);
+
+                Cell cell3 = row.createCell(2);
+                cell3.setCellValue(foodRecipes.get(i).getFood().getId());
+                cell3.setCellStyle(style);
+
+                Cell cell4 = row.createCell(3);
+                cell4.setCellValue(foodRecipes.get(i).getFood().getProductName());
+                cell4.setCellStyle(style);
+
+                Cell cell5 = row.createCell(4);
+                cell5.setCellValue(foodRecipes.get(i).getQuantity());
+                cell5.setCellStyle(style);
+
+                Cell cell6 = row.createCell(5);
+                cell6.setCellValue(foodRecipes.get(i).getFood().getMeasurementUnit());
+                cell6.setCellStyle(style);
+            }
+
+
+            String fileLocation = directoryPath + "\\" + xlsxFilename;
+
+            FileOutputStream outputStream = new FileOutputStream(fileLocation);
+            workbook.write(outputStream);
+            outputStream.flush();
+            outputStream.close();
+            System.out.println("Fisier creat cu succes la locatia " + fileLocation);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
     }
 }
