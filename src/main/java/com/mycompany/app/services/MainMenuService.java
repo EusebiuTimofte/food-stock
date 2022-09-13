@@ -5,6 +5,7 @@ import com.mycompany.app.entities.FoodRecipe;
 import com.mycompany.app.entities.Recipe;
 import com.mycompany.app.nondbentities.FoodRecipeXlsx;
 import com.mycompany.app.nondbentities.FoodXlsx;
+import com.mycompany.app.nondbentities.Xlsx;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.hibernate.Session;
@@ -52,10 +53,22 @@ public class MainMenuService {
             switch (option) {
                 case 1 -> addIngredient();
                 case 2 -> addIngredientsFromExcel();
-                case 3 -> exportAllFoodIntoXlsx();
+                case 3 -> {
+                    if (Xlsx.writeCounter > 3){
+                        System.out.println("Intr-o sesiune nu va este permis sa exportati date de mai mult de 3 ori");
+                    }else {
+                        exportAllFoodIntoXlsx();
+                    }
+                }
                 case 4 -> addRecipe();
                 case 5 -> cookRecipe();
-                case 6 -> exportRecipesToXlsx();
+                case 6 -> {
+                    if (Xlsx.writeCounter > 3){
+                        System.out.println("Intr-o sesiune nu va este permis sa exportati date de mai mult de 3 ori");
+                    }else {
+                        exportRecipesToXlsx();
+                    }
+                }
                 case 10 -> {
                     System.out.println("Au revoir!");
                     System.exit(0);

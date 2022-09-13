@@ -9,6 +9,8 @@ import java.io.IOException;
 
 public abstract class Xlsx {
 
+    public static int writeCounter=0;
+
     XSSFWorkbook workbook;
     Sheet sheet;
 
@@ -27,6 +29,7 @@ public abstract class Xlsx {
             outputStream.flush();
             outputStream.close();
             System.out.println("Fisier creat cu succes la locatia " + fileLocation);
+            writeCounter++;
         } catch (FileNotFoundException e) {
             System.out.println("Calea " + fileLocation +" este invalida ori fisierul nu a putut fi creat");
         }catch (IOException e2){
