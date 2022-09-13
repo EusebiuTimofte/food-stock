@@ -13,6 +13,7 @@ import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 
 
+import javax.sound.midi.Soundbank;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -54,6 +55,7 @@ public class MainMenuService {
                 case 2 -> addIngredientsFromExcel();
                 case 3 -> exportAllFoodIntoXlsx();
                 case 4 -> addRecipe();
+                case 5 -> cookRecipe();
                 case 10 -> {
                     System.out.println("Au revoir!");
                     System.exit(0);
@@ -71,6 +73,7 @@ public class MainMenuService {
         System.out.println("2. Adauga ingrediente dintr-un excel");
         System.out.println("3. Exporta ingredientele existente intr-un excel");
         System.out.println("4. Adauga o reteta");
+        System.out.println("5. Gateste o reteta");
         System.out.println("10. Exit");
     }
 
@@ -297,11 +300,37 @@ public class MainMenuService {
 
     public void cookRecipe() {
 
-        System.out.println("Introduceti numele retetei");
+        System.out.println("Introduceti numele retetei care urmeaza a fi gatita");
         String recipeName = sc.nextLine().trim().toLowerCase();
         //get recipe
+        Recipe recipe = session.createNativeQuery("select * from Recipes where recipe_name='" + recipeName + "'", Recipe.class).uniqueResult();
         // check recipe exists
-        // get ingredients
-        // update quantities if possible
+        if (recipe == null) {
+            System.out.println("Reteta nu exista");
+        }else {
+            List<FoodRecipe> ingredients = session.createNativeQuery("select * from foodrecipes where recipe_id=" + recipe.getId(), FoodRecipe.class).list();
+            //luam fiecare ingredient si facem update. daca nu se poate dam la tranzactie reverse;
+            Transaction transaction = session.beginTransaction();
+            for (int i=0;i<ingredients.size(); i++) {
+                //get ingredient
+                if (ingredients.get(i).getFood().getStockQuantity() < ingredients.get(i).getQuantity()){
+                    System.out.println("Reteta nu poate fi gatita. Aceasta necesita "
+                            + ingredients.get(i).getQuantity()
+                            + " " + ingredients.get(i).getFood().getMeasurementUnit()
+                            + " de " + ingredients.get(i).getFood().getProductName()
+                            + ", dar in stock sunt doar " + ingredients.get(i).getFood().getStockQuantity() +
+                            " " + ingredients.get(i).getFood().getMeasurementUnit());
+                    transaction.rollback();
+                    return;
+                }else{
+                    Food food = ingredients.get(i).getFood();
+                    food.setStockQuantity(food.getStockQuantity()- ingredients.get(i).getQuantity());
+                    session.persist(food);
+                }
+
+            }
+            transaction.commit();
+            System.out.println("Stocul a fost actualizat cu succes.");
+        }
     }
 }
